@@ -1,0 +1,67 @@
+# Builds the static export and publishes it to GitHub Pages.
+#
+# The app is entirely client-side: every upstream sends
+# access-control-allow-origin: *, so there is no server to run.
+
+name: Deploy to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # UTC deliberately: production is never Singapore time, and every
+      # displayed time must still come out as Asia/Singapore.
+      - run: TZ=UTC npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/configure-pages@v5
+      - run: npm ci
+      # Pages serves the project under /<repo>/, so assets need that prefix.
+      - run: npx next build
+        env:
+          PAGES_BASE_PATH: /${{ github.event.repository.name }}
+      # Belt and braces: Pages historically hides directories starting with an
+      # underscore, and every Next asset lives in _next.
+      - run: touch out/.nojekyll
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

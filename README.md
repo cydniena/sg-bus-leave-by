@@ -107,9 +107,9 @@ The app is a **static export** — there is no server. Every upstream sends
 `access-control-allow-origin: *`, so the browser calls them directly and the whole thing
 is HTML, CSS, JS and one JSON file.
 
-`.gitlab-ci.yml` builds it for **GitLab Pages** on every push to the default branch. Pages
-serves a project under `/<project-name>/`, so CI passes that as `PAGES_BASE_PATH` and
-Next prefixes every asset with it. Nothing to configure in the GitLab UI.
+`.github/workflows/deploy.yml` builds it for **GitHub Pages** on every push to `main`.
+Pages serves a project under `/<repo>/`, so CI passes that as `PAGES_BASE_PATH` and Next
+prefixes every asset with it. Tests gate the deploy.
 
 Any static host works the same way — set `PAGES_BASE_PATH` if it serves from a
 subdirectory, leave it unset for a domain root:
