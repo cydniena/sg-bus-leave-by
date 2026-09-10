@@ -20,15 +20,13 @@ Or take a later one
 
 ## Running it
 
-**No API keys. No registration. Nothing to configure.**
+**No API keys. No registration. No server.**
 
 ```bash
 npm install
 npm run fetch-stops     # one-off: snapshot Singapore's ~5,200 bus stops
 npm run dev             # http://localhost:3000
 ```
-
-Then `open http://localhost:3000/api/health` to confirm the upstreams are reachable.
 
 ## Where the data comes from
 
@@ -51,10 +49,6 @@ server silently answers `foot` requests with car timings (38 km/h), which is wor
 estimate. So walk your route once and set the real number in the trip form. Everything
 else is calculated from it, so it's the one input worth getting right.
 
-## Deploying
-
-Deploy to Vercel or any Node host. No environment variables, no database — trips live in
-`localStorage`.
 
 ## Verifying it against reality
 
@@ -109,9 +103,17 @@ human typing speed is fine. Results are cached and a 429 is retried once.
 
 ## Deploying
 
-Import the repo at [vercel.com/new](https://vercel.com/new) — Next.js is auto-detected and
-there is nothing to configure. No environment variables, no database.
+The app is a **static export** — there is no server. Every upstream sends
+`access-control-allow-origin: *`, so the browser calls them directly and the whole thing
+is HTML, CSS, JS and one JSON file.
 
-`vercel.json` pins functions to `sin1` (Singapore). Vercel defaults to US East, which would
-put a transpacific round trip in front of every arrivals call to an API that lives in
-Singapore.
+`.gitlab-ci.yml` builds it for **GitLab Pages** on every push to the default branch. Pages
+serves a project under `/<project-name>/`, so CI passes that as `PAGES_BASE_PATH` and
+Next prefixes every asset with it. Nothing to configure in the GitLab UI.
+
+Any static host works the same way — set `PAGES_BASE_PATH` if it serves from a
+subdirectory, leave it unset for a domain root:
+
+```bash
+npx next build          # -> out/
+```

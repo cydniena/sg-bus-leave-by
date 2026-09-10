@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Arrival } from '@/lib/types';
-import type { WireService } from '@/lib/api';
+import { fetchArrivals } from '@/lib/arrivals';
 
 const FAST_MS = 20_000; // LTA refreshes about every 20s
 const SLOW_MS = 180_000; // nothing imminent — back off
@@ -35,19 +35,8 @@ export function useArrivals(stopCode: string | null, serviceNo: string | null): 
     if (!stopCode || !serviceNo) return [];
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/arrivals?stop=${encodeURIComponent(stopCode)}&service=${encodeURIComponent(serviceNo)}`,
-      );
-      const body = (await res.json()) as { services?: WireService[]; error?: string };
-      if (!res.ok) throw new Error(body.error ?? `Request failed (${res.status})`);
-
-      const service = body.services?.find((s) => s.serviceNo === serviceNo) ?? body.services?.[0];
-      const next: Arrival[] = (service?.arrivals ?? []).map((a) => ({
-        at: new Date(a.at),
-        monitored: a.monitored,
-        load: a.load as Arrival['load'],
-        type: a.type,
-      }));
+      const services = await fetchArrivals(stopCode, serviceNo);
+      const next = services[0]?.arrivals ?? [];
 
       if (!cancelled.current) {
         setArrivals(next);

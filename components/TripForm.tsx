@@ -2,8 +2,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Place, Trip } from '@/lib/types';
 import { DEFAULT_BUFFER_SEC, DEFAULT_LEAD_SEC } from '@/lib/types';
-import type { NearbyStop } from '@/lib/geo';
-import type { WireService } from '@/lib/api';
+import { nearbyStops, type NearbyStop } from '@/lib/geo';
+import { search } from '@/lib/geocode';
+import { loadStops } from '@/lib/stops';
+import { fetchArrivals } from '@/lib/arrivals';
+import { estimateWalk } from '@/lib/walk';
 import { formatDuration } from '@/lib/format';
 
 const minToHHMM = (min: number) =>
@@ -13,13 +16,6 @@ const hhmmToMin = (v: string) => {
   const [h, m] = v.split(':').map(Number);
   return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
 };
-
-async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  const body = await res.json();
-  if (!res.ok) throw new Error(body.error ?? `Request failed (${res.status})`);
-  return body as T;
-}
 
 /** Four dashes that fill as the setup progresses. */
 function Steps({ current }: { current: number }) {
@@ -80,9 +76,7 @@ export function TripForm({
     setBusy('Searching…');
     setError(null);
     try {
-      const { results } = await getJson<{ results: Place[] }>(
-        `/api/search?q=${encodeURIComponent(query)}`,
-      );
+      const results = await search(query);
       setResults(results.slice(0, 8));
       if (results.length === 0) setError('No places matched that.');
     } catch (e) {
@@ -96,8 +90,8 @@ export function TripForm({
   useEffect(() => {
     if (!origin) return;
     setBusy('Finding nearby stops…');
-    getJson<{ stops: NearbyStop[] }>(`/api/stops?lat=${origin.lat}&lng=${origin.lng}`)
-      .then((b) => setStops(b.stops))
+    loadStops()
+      .then((all) => setStops(nearbyStops(origin, all)))
       .catch((e) => setError((e as Error).message))
       .finally(() => setBusy(null));
   }, [origin]);
@@ -106,8 +100,8 @@ export function TripForm({
   useEffect(() => {
     if (!stop) return;
     setBusy('Checking services…');
-    getJson<{ services: WireService[] }>(`/api/arrivals?stop=${stop.code}`)
-      .then((b) => setServices(b.services.map((s) => s.serviceNo).sort()))
+    fetchArrivals(stop.code)
+      .then((all) => setServices(all.map((s) => s.serviceNo).sort()))
       .catch((e) => setError((e as Error).message))
       .finally(() => setBusy(null));
   }, [stop]);
@@ -120,9 +114,7 @@ export function TripForm({
     setBusy('Estimating the walk…');
     setError(null);
     try {
-      const r = await getJson<{ seconds: number; metres: number }>(
-        `/api/walk?from=${origin.lat},${origin.lng}&to=${target.lat},${target.lng}`,
-      );
+      const r = estimateWalk(origin, target);
       setWalkSec(r.seconds);
       setWalkMetres(r.metres);
     } catch (e) {

@@ -13,6 +13,13 @@ See README.md for setup. **It runs with no API keys** — keep it that way if yo
   with `TZ=UTC` to catch exactly that.
 - **No environment variables.** Every upstream is public. If a future change needs a key,
   that's a real cost — weigh it against dropping the feature.
+- **Static export, no server.** `output: 'export'`, so there are no API routes and nothing
+  runs server-side. This only works because all three upstreams send
+  `access-control-allow-origin: *` — verify that before adding a fourth.
+- **Respect `basePath`.** GitLab Pages serves under `/<project>/`. `fetch()` does not know
+  about basePath, so any static asset fetched by hand must prefix
+  `process.env.NEXT_PUBLIC_BASE_PATH` — see `lib/stops.ts`. Next also skips basePath on the
+  manifest link, which `app/layout.tsx` sets explicitly.
 
 ## Upstream quirks worth remembering
 

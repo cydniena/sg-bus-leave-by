@@ -1,9 +1,9 @@
 {
   "name": "Leave By",
   "short_name": "Leave By",
-  "description": "When to walk out the door so you never miss the bus.",
-  "start_url": "/",
+  "description": "When to stop working, so you don't miss the bus.",
+  "start_url": "./",
   "display": "standalone",
-  "background_color": "#0b0f14",
-  "theme_color": "#0b0f14"
+  "background_color": "#0a0e14",
+  "theme_color": "#0a0e14"
 }

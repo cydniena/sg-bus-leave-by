@@ -1,5 +1,5 @@
 /**
- * End-to-end check against a running server.
+ * End-to-end check against the live upstream, no server needed.
  *
  *   node scripts/smoke.mjs --stop 83139 --service 15 --walk 10 [--buffer 2]
  *
@@ -12,28 +12,32 @@ const arg = (name, fallback) => {
   return i >= 0 ? process.argv[i + 1] : fallback;
 };
 
-const base = arg('base', 'http://localhost:3117');
 const stop = arg('stop');
 const service = arg('service');
 const walkMin = Number(arg('walk', '10'));
 const bufferMin = Number(arg('buffer', '2'));
 
-if (!stop || !service) {
-  console.error('usage: node scripts/smoke.mjs --stop <code> --service <no> --walk <min> [--buffer <min>]');
+if (!stop) {
+  console.error('usage: node scripts/smoke.mjs --stop <code> [--service <no>] --walk <min> [--buffer <min>]');
   process.exit(1);
 }
 
-const res = await fetch(`${base}/api/arrivals?stop=${stop}&service=${service}`);
-const body = await res.json();
+const res = await fetch(`https://arrivelah2.busrouter.sg/?id=${stop}`);
 if (!res.ok) {
-  console.error(`error: ${body.error}`);
+  console.error(`arrivals service returned ${res.status}`);
   process.exit(1);
 }
 
-const svc = body.services.find((s) => s.serviceNo === service) ?? body.services[0];
-if (!svc || svc.arrivals.length === 0) {
-  console.log(`No upcoming bus ${service} at stop ${stop} right now.`);
+const { services = [] } = await res.json();
+if (services.length === 0) {
+  console.log(`No buses running at stop ${stop} right now.`);
   process.exit(0);
+}
+
+const svc = service ? services.find((s) => s.no === service) : services[0];
+if (!svc) {
+  console.error(`Bus ${service} is not running at stop ${stop}. Running: ${services.map((s) => s.no).join(', ')}`);
+  process.exit(1);
 }
 
 const sgt = (d) =>
@@ -42,13 +46,14 @@ const sgt = (d) =>
   }).format(d);
 
 const now = new Date();
-console.log(`\nBus ${svc.serviceNo} at stop ${stop} — now ${sgt(now)} SGT`);
+console.log(`\nBus ${svc.no} at stop ${stop} — now ${sgt(now)} SGT`);
 console.log(`walk ${walkMin} min, buffer ${bufferMin} min\n`);
 console.log('  arrives   leave by   last chance   status');
 console.log('  ────────────────────────────────────────────');
 
-for (const a of svc.arrivals) {
-  const arrival = new Date(a.at);
+for (const bus of [svc.next, svc.next2, svc.next3]) {
+  if (!bus?.time) continue;
+  const arrival = new Date(bus.time);
   const lastChance = new Date(arrival.getTime() - walkMin * 60_000);
   const leaveBy = new Date(lastChance.getTime() - bufferMin * 60_000);
   const mins = Math.round((leaveBy - now) / 60_000);
@@ -60,7 +65,7 @@ for (const a of svc.arrivals) {
 
   console.log(
     `  ${sgt(arrival)}     ${sgt(leaveBy)}      ${sgt(lastChance)}         ${status}` +
-      (a.monitored ? '' : '  (timetable estimate)'),
+      (bus.monitored === 1 ? '' : '  (timetable estimate)'),
   );
 }
 console.log();

@@ -1,8 +1,11 @@
 /**
- * Snapshot every Singapore bus stop into data/bus-stops.json.
+ * Snapshot every Singapore bus stop into public/bus-stops.json.
  *
  * Source: busrouter.sg's open dataset — no API key, no registration.
  * Shape is a compact map of  code -> [lng, lat, name, road].
+ *
+ * It lives in public/ so the browser fetches it as a static asset rather than
+ * carrying ~480 KB in the JS bundle.
  *
  *   npm run fetch-stops
  */
@@ -30,5 +33,5 @@ if (stops.length < 1000) {
   process.exit(1);
 }
 
-writeFileSync(new URL('../data/bus-stops.json', import.meta.url), JSON.stringify(stops));
-console.log(`wrote data/bus-stops.json — ${stops.length} stops`);
+writeFileSync(new URL('../public/bus-stops.json', import.meta.url), JSON.stringify(stops));
+console.log(`wrote public/bus-stops.json — ${stops.length} stops`);

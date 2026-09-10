@@ -1,0 +1,33 @@
+# GitLab Pages — builds the static export and publishes it.
+#
+# The app is entirely client-side: every upstream sends
+# access-control-allow-origin: *, so there is no server to run.
+
+image: node:22
+
+stages: [test, deploy]
+
+cache:
+  key:
+    files: [package-lock.json]
+  paths: [.npm/]
+
+test:
+  stage: test
+  script:
+    - npm ci --cache .npm --prefer-offline
+    # UTC deliberately: production is never Singapore time, and every displayed
+    # time must still come out as Asia/Singapore.
+    - TZ=UTC npm test
+
+pages:
+  stage: deploy
+  script:
+    - npm ci --cache .npm --prefer-offline
+    # Pages serves the project under /<project-name>/, so assets need that prefix.
+    - PAGES_BASE_PATH="/$CI_PROJECT_NAME" npx next build
+    - mv out public_out && rm -rf public && mv public_out public
+  artifacts:
+    paths: [public]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
