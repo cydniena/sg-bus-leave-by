@@ -106,3 +106,12 @@ human typing speed is fine. Results are cached and a 429 is retried once.
   all — so the phone view is a big glance-able countdown with an audible chime instead.
   `public/manifest.json` is the on-ramp if you later want real Web Push.
 - **Trips don't sync between devices.** *Copy link for phone* moves one across.
+
+## Deploying
+
+Import the repo at [vercel.com/new](https://vercel.com/new) — Next.js is auto-detected and
+there is nothing to configure. No environment variables, no database.
+
+`vercel.json` pins functions to `sin1` (Singapore). Vercel defaults to US East, which would
+put a transpacific round trip in front of every arrivals call to an API that lives in
+Singapore.
