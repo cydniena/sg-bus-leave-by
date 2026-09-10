@@ -1,0 +1,421 @@
+/* ============================================================
+   Leave By — design tokens
+   ============================================================ */
+:root {
+  /* neutrals */
+  --bg: #0a0e14;
+  --bg-elev: #111823;
+  --surface: #151d29;
+  --surface-2: #1c2734;
+  --line: #26323f;
+  --line-soft: #1e2833;
+  --text: #e8eef5;
+  --text-dim: #9aa9b8;
+  --text-faint: #6b7a8a;
+
+  /* semantic */
+  --accent: #5ba8ff;
+  --accent-ink: #04121f;
+  --ok: #35d07f;
+  --soon: #ffb84d;
+  --now: #ff6b5e;
+
+  /* form */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-lg: 22px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 24px 48px -20px rgb(0 0 0 / 0.7);
+
+  /* motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur: 0.42s;
+
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f6f8fb;
+    --bg-elev: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #eef2f7;
+    --line: #dbe3ec;
+    --line-soft: #e8edf3;
+    --text: #0e1720;
+    --text-dim: #556575;
+    --text-faint: #8494a4;
+
+    --accent: #0a6fd8;
+    --accent-ink: #ffffff;
+    --ok: #129a5b;
+    --soon: #b5710a;
+    --now: #d8412f;
+
+    --shadow: 0 1px 2px rgb(16 32 48 / 0.06), 0 8px 20px -12px rgb(16 32 48 / 0.24);
+    --shadow-lg: 0 2px 6px rgb(16 32 48 / 0.08), 0 24px 44px -20px rgb(16 32 48 / 0.28);
+
+    color-scheme: light;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Ambient wash behind everything, tinted by the current urgency. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(120% 60% at 50% -10%, var(--wash, transparent), transparent 70%);
+  transition: background 1.2s var(--ease);
+}
+body[data-urgency='ok']   { --wash: color-mix(in srgb, var(--ok) 11%, transparent); }
+body[data-urgency='soon'] { --wash: color-mix(in srgb, var(--soon) 15%, transparent); }
+body[data-urgency='now']  { --wash: color-mix(in srgb, var(--now) 20%, transparent); }
+
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 24px 18px 72px;
+}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+h1 { font-size: 1.22rem; margin: 0 0 3px; letter-spacing: -0.02em; font-weight: 680; }
+h2 {
+  font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.11em;
+  color: var(--text-faint); margin: 32px 0 12px; font-weight: 700;
+}
+.muted { color: var(--text-dim); }
+.faint { color: var(--text-faint); }
+.small { font-size: 0.83rem; }
+.tnum  { font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   Surfaces
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+/* ============================================================
+   Hero — countdown ring
+   ============================================================ */
+.hero {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 30px 18px 24px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-elev), var(--surface));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  animation: rise var(--dur) var(--ease) both;
+}
+
+.ring-wrap { position: relative; width: 244px; height: 244px; }
+.ring { display: block; transform: rotate(-90deg); overflow: visible; }
+.ring-track { fill: none; stroke: var(--line-soft); }
+.ring-bar {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.95s linear, stroke 0.7s var(--ease);
+}
+.ring-ok   .ring-bar { stroke: var(--ok);   filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ok) 45%, transparent)); }
+.ring-soon .ring-bar { stroke: var(--soon); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--soon) 55%, transparent)); }
+.ring-now  .ring-bar { stroke: var(--now);  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--now) 65%, transparent)); }
+.ring-gone .ring-bar { stroke: var(--text-faint); }
+
+.ring-now  { animation: breathe 1.6s var(--ease-in-out) infinite; }
+
+.ring-face {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; text-align: center;
+}
+.ring-kicker {
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+}
+.ring-ok   .ring-kicker { color: var(--ok); }
+.ring-soon .ring-kicker { color: var(--soon); }
+.ring-now  .ring-kicker { color: var(--now); }
+.ring-gone .ring-kicker { color: var(--text-faint); }
+
+.ring-time {
+  font-size: 3.5rem; font-weight: 730; line-height: 1;
+  letter-spacing: -0.035em; font-variant-numeric: tabular-nums;
+}
+.ring-count {
+  font-size: 1.02rem; font-weight: 600; color: var(--text-dim);
+  font-variant-numeric: tabular-nums; margin-top: 4px;
+}
+
+.hero-caption { margin-top: 18px; text-align: center; font-size: 0.95rem; }
+.hero-delta {
+  margin-top: 12px; font-size: 0.86rem; font-weight: 650;
+  padding: 6px 13px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px;
+  animation: pop 0.5s var(--ease) both 0.15s;
+}
+.hero-delta.early {
+  color: var(--soon);
+  background: color-mix(in srgb, var(--soon) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--soon) 32%, transparent);
+}
+.hero-delta.later {
+  color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+}
+
+/* ============================================================
+   Journey timeline — why the deadline is the deadline
+   ============================================================ */
+.journey { margin-top: 22px; width: 100%; max-width: 340px; }
+.leg { display: grid; grid-template-columns: 62px 22px 1fr; align-items: start; }
+.leg-time {
+  font-size: 0.9rem; font-weight: 650; font-variant-numeric: tabular-nums;
+  text-align: right; padding-right: 12px; line-height: 20px;
+}
+.leg-rail { position: relative; display: flex; justify-content: center; }
+.leg-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--surface); border: 2.5px solid var(--text-faint);
+  margin-top: 5px; z-index: 1;
+  transition: border-color var(--dur) var(--ease);
+}
+.leg.is-start .leg-dot { border-color: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+.leg.is-bus   .leg-dot { border-color: var(--ok); background: var(--ok); }
+.leg-label { font-size: 0.88rem; line-height: 20px; }
+.leg-label .small { line-height: 1.4; margin-top: 1px; }
+
+.leg-gap { display: grid; grid-template-columns: 62px 22px 1fr; }
+.leg-gap-rail { display: flex; justify-content: center; }
+.leg-gap-line {
+  width: 2.5px; border-radius: 2px;
+  background: linear-gradient(var(--text-faint), var(--text-faint));
+  opacity: 0.45;
+}
+.leg-gap.walk .leg-gap-line { height: 30px; background: var(--accent); opacity: 0.5; }
+.leg-gap.wait .leg-gap-line {
+  height: 22px;
+  background: repeating-linear-gradient(var(--text-faint) 0 3px, transparent 3px 7px);
+  opacity: 0.6;
+}
+.leg-gap-label { font-size: 0.78rem; color: var(--text-faint); align-self: center; }
+
+/* ============================================================
+   Later departures
+   ============================================================ */
+.row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); margin-bottom: 9px;
+  box-shadow: var(--shadow);
+  animation: rise 0.5s var(--ease) both;
+  transition: transform 0.22s var(--ease), border-color 0.22s var(--ease);
+}
+.row:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.row.gone { opacity: 0.45; box-shadow: none; }
+.row.gone:hover { transform: none; }
+
+.row-time { font-size: 1.2rem; font-weight: 680; font-variant-numeric: tabular-nums; min-width: 58px; }
+.row-main { flex: 1; min-width: 0; }
+.row-delta {
+  font-size: 0.84rem; font-weight: 700; white-space: nowrap;
+  padding: 5px 11px; border-radius: 999px;
+}
+.row-delta.gain { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.row-delta.cost { color: var(--soon); background: color-mix(in srgb, var(--soon) 12%, transparent); }
+
+/* stagger the list in */
+.row:nth-child(1) { animation-delay: 0.05s; }
+.row:nth-child(2) { animation-delay: 0.11s; }
+.row:nth-child(3) { animation-delay: 0.17s; }
+.row:nth-child(4) { animation-delay: 0.23s; }
+.row:nth-child(5) { animation-delay: 0.29s; }
+
+.badge {
+  display: inline-block; font-size: 0.66rem; font-weight: 750;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--text-faint); margin-left: 7px;
+  vertical-align: 1px;
+}
+.badge.warn {
+  color: var(--soon);
+  border-color: color-mix(in srgb, var(--soon) 42%, transparent);
+  background: color-mix(in srgb, var(--soon) 10%, transparent);
+}
+
+/* ============================================================
+   Controls
+   ============================================================ */
+button {
+  font: inherit; cursor: pointer; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text);
+  padding: 10px 15px;
+  transition: transform 0.14s var(--ease), border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+button:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px); }
+button:active:not(:disabled) { transform: translateY(0) scale(0.985); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary {
+  background: var(--accent); border-color: var(--accent); color: var(--accent-ink);
+  font-weight: 660;
+  box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+button.primary:hover:not(:disabled) { box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--accent) 80%, transparent); }
+button.ghost { background: transparent; }
+button.ghost:hover:not(:disabled) { background: var(--surface-2); }
+button.danger:hover:not(:disabled) { border-color: var(--now); color: var(--now); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.small { padding: 7px 12px; font-size: 0.85rem; }
+
+input, select {
+  font: inherit; width: 100%; padding: 11px 13px;
+  border-radius: var(--radius-sm); border: 1px solid var(--line);
+  background: var(--bg-elev); color: var(--text);
+  transition: border-color 0.18s, box-shadow 0.18s;
+}
+input:focus, select:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+label { display: block; font-size: 0.82rem; color: var(--text-dim); margin: 0 0 7px; font-weight: 550; }
+.field { margin-bottom: 16px; }
+.field-row { display: flex; gap: 10px; }
+.field-row > * { flex: 1; }
+.actions { display: flex; gap: 9px; flex-wrap: wrap; margin-top: 8px; }
+
+/* ============================================================
+   Stepper (setup flow)
+   ============================================================ */
+.steps { display: flex; gap: 8px; margin: 4px 0 26px; }
+.step-pip { flex: 1; height: 4px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.step-pip span {
+  display: block; height: 100%; width: 0; border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s var(--ease);
+}
+.step-pip.done span, .step-pip.active span { width: 100%; }
+.step-pip.active span { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 40%, transparent)); }
+
+.section { animation: rise 0.45s var(--ease) both; }
+
+.pick {
+  width: 100%; text-align: left; margin-bottom: 7px;
+  display: flex; justify-content: space-between; gap: 10px; align-items: center;
+  animation: rise 0.4s var(--ease) both;
+}
+.pick:nth-child(1) { animation-delay: 0.03s; }
+.pick:nth-child(2) { animation-delay: 0.07s; }
+.pick:nth-child(3) { animation-delay: 0.11s; }
+.pick:nth-child(4) { animation-delay: 0.15s; }
+.pick:nth-child(5) { animation-delay: 0.19s; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 9px; }
+.chips button { min-width: 58px; text-align: center; font-variant-numeric: tabular-nums; }
+.chips button[aria-pressed='true'] {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--accent-ink); font-weight: 720;
+  box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* ============================================================
+   Banners & chrome
+   ============================================================ */
+.banner {
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 12px 14px; margin-bottom: 15px; font-size: 0.87rem;
+  background: var(--surface);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  animation: rise 0.4s var(--ease) both;
+}
+.banner.error {
+  border-color: color-mix(in srgb, var(--now) 45%, var(--line));
+  background: color-mix(in srgb, var(--now) 9%, var(--surface));
+}
+.banner.info { border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); }
+.banner > :first-child { flex: 1; min-width: 180px; }
+
+.topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); margin-right: 6px; }
+.dot.live { animation: blink 2.4s ease-in-out infinite; }
+.dot.stale { background: var(--text-faint); animation: none; }
+
+.skeleton {
+  border-radius: var(--radius); background: var(--surface-2);
+  background-image: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 7%, transparent), transparent);
+  background-size: 240px 100%; background-repeat: no-repeat;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   Motion
+   ============================================================ */
+@keyframes rise    { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes pop     { from { opacity: 0; transform: scale(0.9); }       to { opacity: 1; transform: none; } }
+@keyframes breathe { 50%  { transform: scale(1.022); } }
+@keyframes blink   { 50%  { opacity: 0.25; } }
+@keyframes shimmer { to   { background-position: 340px 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .ring-bar { transition: none; }
+}
+
+/* ============================================================
+   Trip list & empty state
+   ============================================================ */
+.trip-row { cursor: pointer; }
+.trip-badge {
+  display: grid; place-items: center;
+  min-width: 46px; height: 46px; padding: 0 9px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--accent); font-weight: 750; font-size: 1rem;
+}
+
+.empty-art {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 0 4px;
+  animation: rise 0.6s var(--ease) both;
+}
+.empty-dot {
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2.5px solid var(--accent); background: var(--surface);
+}
+.empty-line { width: 52px; height: 2.5px; border-radius: 2px; background: var(--accent); opacity: 0.5; }
+.empty-line.dashed {
+  background: repeating-linear-gradient(90deg, var(--text-faint) 0 4px, transparent 4px 9px);
+  opacity: 0.7;
+}
+.empty-bus { font-size: 1.5rem; animation: nudge 3.2s var(--ease-in-out) infinite; }
+@keyframes nudge { 50% { transform: translateX(5px); } }
